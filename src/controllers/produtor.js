@@ -1,47 +1,33 @@
-const dbConnection = require('../database/connection')
+const produtorRepo = require('../repo/produtor')
 
-const getProdutores = async (req, res, next) => {
-    const sql = await dbConnection()
-    const query = 'select * from tb_produtor'
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err.message)
-        res.status(200).json(result.recordset)
-    })
+const getProdutores = async (req, res) => {
+    produtorRepo.getProdutores()
+        .then(response => res.json(response))
+        .catch(err => res.send(err))
 }
 
-const getProdutor = async (req, res, next) => {
+const getProdutor = async (req, res) => {
     const cpf = req.params.cpf
-    if (!cpf) return res.status(404).end()
-    const sql = await dbConnection()
-    const query = `select * from tb_produtor where cpf = '${cpf}'`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err.message)
-        if (result.recordset.length > 0) return res.status(200).send(result.recordset[0]).end()
-        return res.status(404).send(res.statusMessage).end()
-    })
+    produtorRepo.getProdutor(cpf)
+        .then(response => res.json(response))
+        .catch(err => res.send(err))
 }
 
-const addProdutor = async (req, res, next) => {
+const addProdutor = async (req, res) => {
     const { nome, cpf } = req.body
-    if (!nome || !cpf) return res.status(400).send('Informe os campos nome e cpf').end()
-    const sql = await dbConnection()
-    const query = `insert into tb_produtor values ('${nome}', '${cpf}')`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err.message)
-        if (result.rowsAffected[0] > 0) res.status(201).send('Inserido com sucesso').end()
-    })
+    if (!nome || !cpf) return res.status(400).send('Informe os campos nome e cpf')
+    produtorRepo.addProdutor({nome, cpf})
+        .then(response => res.send(response))
+        .catch(err => res.send(err))
 }
 
-const updateProdutor = async (req, res, next) => {
+const updateProdutor = async (req, res) => {
     const id = req.params.id
     const { nome, cpf } = req.body
-    if (!nome || !cpf) return res.status(400).end()
-    const sql = await dbConnection()
-    const query = `update tb_produtor set nome = '${nome}', cpf = '${cpf}' where id = ${id}`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err.message)
-        if (result.rowsAffected[0] > 0) res.status(200).send('Alterado com sucesso').end()
-    })
+    if (!nome || !cpf) return res.status(400)
+    produtorRepo.updateProdutor({id, nome, cpf})
+    .then(response => res.send(response))
+    .catch(err => res.send(err))
 }
 
 module.exports = {

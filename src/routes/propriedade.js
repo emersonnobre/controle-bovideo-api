@@ -1,13 +1,16 @@
 const express = require('express')
 const router = express.Router()
+const { getPropriedades, getPropriedadeInscricao, getPropriedadeProdutor, addPropriedade, updatePropriedade } = require('../controllers/propriedade')
 
 router.route('/propriedade')
-    .get((req, res, next) => res.send('get all'))
-    .post((req, res, next) => res.json(req.body))
+    .get(getPropriedades)
+    .post(addPropriedade)
 
-router.route('/propriedade/:id')
-    .get((req, res, next) => res.send(`get one: ${req.params.id}`))
-    .patch((req, res, next) => res.send(`update one: ${req.params.id}`))
-    .delete((req, res, next) => res.send(`delete one: ${req.params.id}`))
+router.route('/propriedade/:inscricaoEstadual')
+    .get(getPropriedadeInscricao)
+    .patch(updatePropriedade)
+
+router.route('/propriedade/produtor/:idProdutor')
+    .get(getPropriedadeProdutor)
 
 module.exports = router

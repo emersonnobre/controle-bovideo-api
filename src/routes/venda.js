@@ -1,16 +1,17 @@
 const express = require('express')
 const router = express.Router()
+const { addVenda, deleteVenda, getVendaByProdutor, getCompraByProdutor, } = require('../controllers/venda')
 
 router.route('/venda')
-    .post((req, res, next) => res.send(req.body).status(201))
+    .post(addVenda)
 
 router.route('/venda/:id')
-    .delete((req, res, next) => res.send(`delete one: ${req.params.id}`))
+    .delete(deleteVenda)
 
-router.route('/venda/:idprodutor')
-    .get((req, res, next) => res.send(req.baseUrl))
+router.route('/venda/:cpf')
+    .get(getVendaByProdutor)
 
-router.route('/compra/:idprodutor')
-    .get((req, res, next) => res.send(`get purchase from a productor: ${req.params.idprodutor}`))
+router.route('/compra/:cpf')
+    .get(getCompraByProdutor)
 
 module.exports = router

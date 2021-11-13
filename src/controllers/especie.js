@@ -1,14 +1,11 @@
-const dbConnection = require('../database/connection')
+const especieRepo = require('../repo/especie')
 
-const getEspecies = async (req, res, next) => {
-    const sql = await dbConnection()
-    const query = 'select * from tb_especie'
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ', err.message)
-        res.status(200).json(result.recordset)
-    })
+const getEspecies = async (req, res) => {
+    especieRepo.getEspecies()
+        .then(response => res.json(response))
+        .catch(err => res.send(err))
 }
 
 module.exports = {
-    getEspecies
+    getEspecies,
 }
