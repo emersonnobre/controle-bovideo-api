@@ -1,9 +1,9 @@
 const municipioRepo = require('../repo/municipio')
 
 const getMunicipios = async (req, res) => {
-    municipioRepo.getMunicipios()
+    municipioRepo.getAll()
         .then(response => res.json(response))
-        .catch(err => res.send(err)) 
+        .catch(err => res.status(500).send(err)) 
 }
 
 module.exports = {

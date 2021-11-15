@@ -6,11 +6,11 @@ router.route('/propriedade')
     .get(getPropriedades)
     .post(addPropriedade)
 
-router.route('/propriedade/:inscricaoEstadual')
+router.route('/propriedade/:inscricao_estadual')
     .get(getPropriedadeInscricao)
     .patch(updatePropriedade)
 
-router.route('/propriedade/produtor/:idProdutor')
+router.route('/propriedade/produtor/:id_produtor')
     .get(getPropriedadeProdutor)
 
 module.exports = router

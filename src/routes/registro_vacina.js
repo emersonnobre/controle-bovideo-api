@@ -5,10 +5,10 @@ const { addRegistroVacina, deleteRegistroVacina, getRegistroVacina, } = require(
 router.route('/vacina')
     .post(addRegistroVacina)
 
-router.route('/vacina/:idRegistroVacina')
+router.route('/vacina/:id_registro_vacina')
     .delete(deleteRegistroVacina)
 
-router.route('/vacina/:inscricaoEstadual')
+router.route('/vacina/:inscricao_estadual')
     .get(getRegistroVacina)
 
 module.exports = router

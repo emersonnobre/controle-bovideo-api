@@ -1,55 +1,87 @@
 const dbConnection = require('../database/connection')
-const { getProdutorByPropriedade } = require('./produtor')
+const produtorRepo = require('./produtor')
+const rebanhoRepo = require('../repo/rebanho')
 
-const get = async (idVenda) => {
+const get = async (id_venda) => {
     const sql = await dbConnection()
-    const query = `select * from tb_venda where id = ${idVenda}`
+    const query = `select * from tb_venda where id = ${id_venda}`
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else resolve(result.recordset[0])
-        })
-    })
-}
-
-const save = async (venda) => {
-    const sql = await dbConnection()
-    const query = `insert into tb_venda values (${venda.quantidade}, '${venda.finalidade}', ${venda.idEspecie}, ${venda.idPropriedadeOrigem}, ${venda.idPropriedadeDestino})`
-    return new Promise((resolve, reject) => {
-        sql.request().query(query, async (err, result) => {
-            if (err) reject(err.message)
-            try {
-                const produtor = await getProdutorByPropriedade(venda.idPropriedadeDestino)
-                addCompra(produtor.id)
-            } catch (err) {
-                reject(err.message)
+            else {
+                if (result.recordset.length > 0) resolve(result.recordset[0])
+                else resolve('Nenhum registro foi encontrado')
             }
-            resolve('Venda inserida')
         })
     })
 }
 
-const remove = async (idVenda) => {
-    await removeCompra(idVenda)
+const getByPropriedadeFilterByDate = async (id_propriedade, id_especie, date) => {
     const sql = await dbConnection()
-    const query = `delete from tb_venda where id = ${idVenda}`
+    console.log()
+    const query = `
+    select * from tb_venda where id_propriedade_origem = ${id_propriedade} and
+    id_especie = ${id_especie} and
+    data_venda >= ${date}
+    `
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else {
+                if (result.recordset.length > 0) resolve(result.recordset)
+                else resolve(0)
+            }
+        })
+    })
+}
+
+const save = async (quantidade, id_propriedade_destino, id_propriedade_origem, id_especie, finalidade) => {
+    const sql = await dbConnection()
+    const date = new Date()
+    const formatedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+    const query = `insert into tb_venda values (${quantidade}, '${finalidade}', '${formatedDate}', ${id_especie}, ${id_propriedade_origem}, ${id_propriedade_destino})`
     return new Promise((resolve, reject) => {
         sql.request().query(query, async (err, result) => {
-            if (err) reject(err.message)
-            else resolve('Venda removida')
+            if (err) reject(err)
+            try {
+                const produtor = await produtorRepo.getByPropriedade(id_propriedade_destino)
+                await addCompra(produtor.id)
+                await rebanhoRepo.save(id_propriedade_destino, quantidade, id_especie)
+                await rebanhoRepo.saveSaldoVacinado(quantidade, id_propriedade_destino, id_especie, 1)
+                await rebanhoRepo.removeSaldoTotal(quantidade, id_propriedade_origem, id_especie)
+                await rebanhoRepo.removeSaldoVacinado(quantidade, id_propriedade_origem, id_especie)
+            } catch (err) {
+                reject(err)
+            }
+            resolve('Venda inserida com sucesso')
         })
     })
 }
 
-const addCompra = async (idProdutor) => {
+const remove = async (id_venda) => {
+    await removeCompra(id_venda)
+    const sql = await dbConnection()
+    const query = `delete from tb_venda where id = ${id_venda}`
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, async (err, result) => {
+            if (err) reject(err)
+            else {
+                if (result.rowsAffected[0] > 1) resolve('Venda removida com sucesso')
+                else resolve('Nenhum registro foi encontrado')
+            }
+        })
+    })
+}
+
+const addCompra = async (id_produtor) => {
     const sql = await dbConnection()
     let query = `select top 1 * from tb_venda order by id DESC`
     sql.request().query(query, (err, result) => {
-        if (err) return console.log(err.message)
-        let idVenda = result.recordset[0].id
-        query = `insert into tb_compra (id_venda, id_produtor) values (${idVenda}, ${idProdutor})` 
+        if (err) return console.log(err)
+        let id_venda = result.recordset[0].id
+        query = `insert into tb_compra (id_venda, id_produtor) values (${id_venda}, ${id_produtor})` 
         sql.request().query(query, (err, result) => {
-            if (err) return console.log(err.message)
+            if (err) return console.log(err)
         })
     })
 }
@@ -59,10 +91,10 @@ const removeCompra = async (idVenda) => {
     const query = `delete from tb_compra where id_venda = ${idVenda}`
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
-            if (err) reject(err.message)
+            if (err) reject(err)
             else {
-                if (result.rowsAffected[0] > 1) resolve('Compra removida')
-                else resolve('Nenhum registro encontrado')
+                if (result.rowsAffected[0] > 1) resolve('Compra removida com sucesso')
+                else resolve('Nenhum registro foi encontrado')
             }
         })
     })
@@ -78,8 +110,11 @@ const getVendasByProdutor = async (cpf) => {
     ` /* TODO: fazer esse negocio com funcao sql */
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
-            if (err) reject(err.message)
-            else resolve(result.recordset)
+            if (err) reject(err)
+            else {
+                if (result.recordset.length > 0) resolve(result.recordset)
+                else resolve('Nenhum registro foi encontrado')
+            }
         })
     })
 }
@@ -93,14 +128,10 @@ const getComprasByProdutor = async (cpf) => {
     ` /* TODO: fazer esse negocio com funcao sql */
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
-            if (err) reject(err.message)
+            if (err) reject(err)
             else {
-                console.log(result.recordset.length)
-                if (result.recordset.length > 0) {
-                    resolve(result.recordset)
-                } else {
-                    resolve('Nenhuma venda encontrada para este produtor')
-                }
+                if (result.recordset.length > 0) resolve(result.recordset)
+                else resolve('Nenhum registro foi encontrado')
             }
         })
     })
@@ -111,4 +142,5 @@ module.exports = {
     remove,
     getVendasByProdutor,
     getComprasByProdutor,
+    getByPropriedadeFilterByDate,
 }

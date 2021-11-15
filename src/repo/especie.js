@@ -1,11 +1,11 @@
 const dbConnection = require('../database/connection')
 
-const getEspecies = async () => {
+const getAll = async () => {
     const sql = await dbConnection()
     const query = 'select * from tb_especie'
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
-            if (err) reject(err.message)
+            if (err) reject(err)
             else {
                 if (result.recordset.length > 0) resolve(result.recordset)
                 else resolve('Nenhum registro encontrado')
@@ -15,5 +15,5 @@ const getEspecies = async () => {
 }
 
 module.exports = {
-    getEspecies,
+    getAll,
 }

@@ -1,37 +1,29 @@
-const dbConnection = require('../database/connection')
+const registroVacinaRepo = require('../repo/registro_vacina')
+const registroVacinaDomain = require('../domain/registro_vacina')
 
-const addRegistroVacina = async (req, res, next) => {
-    const { quantidadeAnimais, dataVacina, idVacina, idPropriedade, idEspecie } = req.body
-    if (!quantidadeAnimais || !dataVacina || !idVacina || !idPropriedade || !idEspecie) return res.status(400).send('Informe os campos necessários').end()
-    const sql = await dbConnection()
-    const query = `insert into tb_registro_vacina values (${quantidadeAnimais}, '${dataVacina}', ${idVacina}, ${idPropriedade}, ${idEspecie})`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err.message)
-        if (result.rowsAffected[0] > 0) res.status(201).send('Inserido com sucesso').end()
-    })
+const addRegistroVacina = async (req, res) => {
+    const { quantidade_animais, data_vacina, id_vacina, id_propriedade, id_especie } = req.body
+    if (!quantidade_animais || !data_vacina || !id_vacina || !id_propriedade || !id_especie) return res.status(400).send('Informe os campos necessários')
+    const registro = registroVacinaDomain.create(quantidade_animais, data_vacina, id_vacina, id_propriedade, id_especie)
+    const valid = await registro.valid()
+    if (valid.valid === false) return res.status(400).send(valid.msg)
+    registroVacinaRepo.save(quantidade_animais, id_propriedade, id_especie, id_vacina, data_vacina)
+        .then(response => res.status(201).send(response))
+        .catch(err => res.status(500).send(err)) 
 }
 
-const deleteRegistroVacina = async (req, res, next) => {
-    const { idRegistroVacina } = req.params
-    const sql = await dbConnection()
-    const query = `delete from tb_registro_vacina where id = ${idRegistroVacina}`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta: ' + err)
-        if (result.rowsAffected[0] > 0) return res.status(200).send('Registro de vacina cancelado').end()
-        res.status(204).send('Registro de vacina não encontrado').end()
-    })
+const deleteRegistroVacina = async (req, res) => {
+    const { id_registro_vacina } = req.params
+    registroVacinaRepo.remove(id_registro_vacina)
+        .then(response => res.send(response))
+        .catch(err => res.status(500).send(err))
 }
 
 const getRegistroVacina = async (req, res, next) => {
-    const { inscricaoEstadual } = req.params
-    const sql = await dbConnection()
-    let query = `select * from registroVacinaPelaPropriedade('${inscricaoEstadual}')`
-    sql.request().query(query, (err, result) => {
-        if (err) throw new Error('Erro na consulta de propriedade: ' + err)
-        if (result.recordset.length > 0)  return res.json(result.recordset)
-        else return res.send('A propriedade não foi encontrada')
-    })
-    
+    const { inscricao_estadual } = req.params
+    registroVacinaRepo.getByPropriedade(inscricao_estadual)
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
 }
 
 module.exports = {

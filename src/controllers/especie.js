@@ -1,9 +1,9 @@
 const especieRepo = require('../repo/especie')
 
 const getEspecies = async (req, res) => {
-    especieRepo.getEspecies()
+    especieRepo.getAll()
         .then(response => res.json(response))
-        .catch(err => res.send(err))
+        .catch(err => res.status(500).send(err))
 }
 
 module.exports = {
