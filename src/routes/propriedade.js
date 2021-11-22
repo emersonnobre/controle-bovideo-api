@@ -6,9 +6,10 @@ router.route('/propriedade')
     .get(getPropriedades)
     .post(addPropriedade)
 
-router.route('/propriedade/:inscricao_estadual')
+    router.route('/propriedade/:inscricao_estadual')
     .get(getPropriedadeInscricao)
     .patch(updatePropriedade)
+    
 
 router.route('/propriedade/produtor/:id_produtor')
     .get(getPropriedadeProdutor)

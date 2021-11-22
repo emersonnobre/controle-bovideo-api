@@ -1,15 +1,16 @@
 const express = require('express')
 const router = express.Router()
-const { getProdutores, getProdutor, addProdutor, updateProdutor } = require('../controllers/produtor')
+const { getProdutores, getProdutorByCpf, getProdutorById, addProdutor, updateProdutor } = require('../controllers/produtor')
 
 router.route('/produtor')
-    .get(getProdutores)
+    .get((req, res) => {
+        if (req.query.id) return getProdutorById(req, res)
+        if (req.query.cpf) return getProdutorByCpf(req, res)
+        getProdutores(req, res)
+    })
     .post(addProdutor)
 
 router.route('/produtor/:id')
     .patch(updateProdutor)
-
-router.route('/produtor/:cpf')
-    .get(getProdutor)
     
 module.exports = router

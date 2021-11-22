@@ -22,7 +22,21 @@ const getByCpf = async (cpf) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
             else {
-                if(result.recordset.length > 0) resolve(result.recordset)
+                if(result.recordset.length > 0) resolve(result.recordset[0])
+                else resolve('Nenhum registro foi encontrado')
+            }
+        })
+    })
+}
+
+const getById = async (id) => {
+    const sql = await dbConnection()
+    const query = `select * from tb_produtor where id = ${id}`
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else {
+                if(result.recordset.length > 0) resolve(result.recordset[0])
                 else resolve('Nenhum registro foi encontrado')
             }
         })
@@ -71,6 +85,7 @@ const update = async (nome, cpf, id) => {
 module.exports = {
     getAll,
     getByCpf,
+    getById,
     getByPropriedade,
     save,
     update,

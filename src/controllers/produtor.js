@@ -7,9 +7,16 @@ const getProdutores = async (req, res) => {
         .catch(err => res.status(500).send(err))
 }
 
-const getProdutor = async (req, res) => {
-    const cpf = req.params.cpf
+const getProdutorByCpf = async (req, res) => {
+    const cpf = req.query.cpf
     produtorRepo.getByCpf(cpf)
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
+}
+
+const getProdutorById = async (req, res) => {
+    const id = req.query.id
+    produtorRepo.getById(id)
         .then(response => res.json(response))
         .catch(err => res.status(500).send(err))
 }
@@ -39,7 +46,8 @@ const updateProdutor = async (req, res) => {
 
 module.exports = {
     getProdutores,
-    getProdutor,
+    getProdutorByCpf,
+    getProdutorById,
     addProdutor,
     updateProdutor
 }

@@ -1,4 +1,6 @@
 const dbConnection = require('../database/connection')
+const produtorRepo = require('./produtor')
+const propriedadeRepo = require('./propriedade')
 
 const save = async (id_propriedade, quantidade, id_especie) => {
     let query = ''
@@ -41,18 +43,40 @@ const remove = async (id_rebanho) => {
 }
 
 const getByProdutor = async (cpf) => {
+    const rebanho = []
+    return new Promise((resolve, reject) => {
+        try {
+            produtorRepo.getByCpf(cpf)
+                .then(produtor => propriedadeRepo.getByProdutor(produtor.id))
+                .then(propriedades => {
+                    propriedades.forEach(propriedade => {
+                        getByIdPropriedade(propriedade.id)
+                            .then(rebanhos => {
+                                rebanhos.forEach(rebanhoUn => rebanho.push(rebanhoUn))
+                            })
+                            .finally(() => resolve(rebanho))
+                    })
+                })
+        } catch (err) {
+            reject(err)
+        }
+    })
+}
+
+const getByIdPropriedade = async (id) => {
     const sql = await dbConnection()
-    let query = `select * from rebanhoPeloProprietario('${cpf}')`
+    let query = `select * from tb_rebanho where id_propriedade=${id}`
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
             else {
                 if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Não foram encontrados rebanhos para esse produtor')
-            }    
+                else resolve('Não foram encontrados rebanhos para essa propriedade')
+            }
         })
-    })  
+    })
 }
+
 
 const getByPropriedade = async (inscricao_estadual) => {
     const sql = await dbConnection()

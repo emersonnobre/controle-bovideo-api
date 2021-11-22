@@ -1,12 +1,9 @@
 module.exports = {
-    server: 'localhost',
+    server: process.env.HOST,
+    port: 1434,
     database: process.env.DATABASE,
-    user: process.env.USER,
-    password: process.env.PASSWORD,
+    driver: "msnodesqlv8",
     options: {
-        trustedConnection: true,
-        encrypt: true,
-        enableArithAbort: true,
-        trustServerCertificate: true,
+        trustedConnection: true
     }
 }
