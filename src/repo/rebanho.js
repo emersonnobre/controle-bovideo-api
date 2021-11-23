@@ -2,6 +2,17 @@ const dbConnection = require('../database/connection')
 const produtorRepo = require('./produtor')
 const propriedadeRepo = require('./propriedade')
 
+const getAll = async () => {
+    const query = 'select * from tb_rebanho'
+    const sql = await dbConnection()
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else resolve(result.recordset)
+        })
+    })
+}
+
 const save = async (id_propriedade, quantidade, id_especie) => {
     let query = ''
     const sql = await dbConnection()
@@ -149,6 +160,7 @@ const removeSaldoVacinado = async (quantidade, id_propriedade, id_especie) => {
 module.exports = {
     save,
     remove,
+    getAll,
     getByProdutor,
     getByPropriedade,
     getSaldoTotal,

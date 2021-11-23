@@ -1,8 +1,9 @@
 const express = require('express')
 const router = express.Router()
-const { addVenda, deleteVenda, getVendaByProdutor, getCompraByProdutor, } = require('../controllers/venda')
+const { addVenda, deleteVenda, getVendaByProdutor, getCompraByProdutor, getAll, } = require('../controllers/venda')
 
 router.route('/venda')
+    .get(getAll)
     .post(addVenda)
 
 router.route('/venda/:id')

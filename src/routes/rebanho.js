@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { addRebanho, deleteRebanho, getAnimaisByProdutor, getAnimaisByPropriedade, } = require('../controllers/rebanho')
+const { addRebanho, deleteRebanho, getAnimaisByProdutor, getAnimaisByPropriedade, getAll } = require('../controllers/rebanho')
     
 router.route('/rebanho')
     .post(addRebanho)
@@ -10,7 +10,7 @@ router.route('/rebanho')
         } else if (req.query.inscricao_estadual_propriedade) {
             getAnimaisByPropriedade(req, res, next)
         } else {
-            res.status(404).end()
+            getAll(req, res)
         }
     })
 

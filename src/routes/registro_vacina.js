@@ -1,14 +1,17 @@
 const express = require('express')
 const router = express.Router()
-const { addRegistroVacina, deleteRegistroVacina, getRegistroVacina, } = require('../controllers/registro_vacina')
+const { addRegistroVacina, deleteRegistroVacina, getByPropriedade, getAll, getById, } = require('../controllers/registro_vacina')
 
 router.route('/vacina')
+    .get((req, res) => {
+        if (req.query.inscricao_estadual) return getByPropriedade(req, res)
+        else if (req.query.id) return getById(req, res)
+        else getAll(req, res)
+    })
     .post(addRegistroVacina)
 
 router.route('/vacina/:id_registro_vacina')
     .delete(deleteRegistroVacina)
 
-router.route('/vacina/:inscricao_estadual')
-    .get(getRegistroVacina)
 
 module.exports = router

@@ -12,6 +12,7 @@ const routerVacina = require('./routes/registro_vacina')
 const routerVenda = require('./routes/venda')
 const routerMunicipio = require('./routes/municipio')
 const routerEspecie = require('./routes/especie')
+const routerEndereco = require('./routes/endereco')
 
 const port = process.env.port || 3000
 
@@ -25,7 +26,8 @@ app.use('/api',
     routerVacina, 
     routerVenda,
     routerMunicipio,
-    routerEspecie
+    routerEspecie,
+    routerEndereco,
 )
 
 app.get('/', (req, res, next) => {

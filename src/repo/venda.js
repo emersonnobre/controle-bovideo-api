@@ -2,6 +2,17 @@ const dbConnection = require('../database/connection')
 const produtorRepo = require('./produtor')
 const rebanhoRepo = require('../repo/rebanho')
 
+const getAll = async () => {
+    const query = 'select * from tb_venda'
+    const sql = await dbConnection()
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else resolve(result.recordset)
+        })
+    })
+}
+
 const get = async (id_venda) => {
     const sql = await dbConnection()
     const query = `select * from tb_venda where id = ${id_venda}`
@@ -140,6 +151,7 @@ const getComprasByProdutor = async (cpf) => {
 module.exports = {
     save,
     remove,
+    getAll,
     getVendasByProdutor,
     getComprasByProdutor,
     getByPropriedadeFilterByDate,

@@ -19,9 +19,22 @@ const deleteRegistroVacina = async (req, res) => {
         .catch(err => res.status(500).send(err))
 }
 
-const getRegistroVacina = async (req, res, next) => {
-    const { inscricao_estadual } = req.params
+const getByPropriedade = async (req, res, next) => {
+    const { inscricao_estadual } = req.query
     registroVacinaRepo.getByPropriedade(inscricao_estadual)
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
+}
+
+const getById = async (req, res, next) => {
+    const { id } = req.query
+    registroVacinaRepo.getById(id)
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
+}
+
+const getAll = async (req, res) => {
+    registroVacinaRepo.getAll()
         .then(response => res.json(response))
         .catch(err => res.status(500).send(err))
 }
@@ -29,5 +42,7 @@ const getRegistroVacina = async (req, res, next) => {
 module.exports = {
     addRegistroVacina,
     deleteRegistroVacina,
-    getRegistroVacina,
+    getByPropriedade,
+    getById,
+    getAll,
 }

@@ -19,6 +19,12 @@ const deleteVenda = async (req, res) => {
         .catch(err => res.status(500).send(err))
 }
 
+const getAll = async (req, res) => {
+    vendaRepo.getAll()
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
+}
+
 const getVendaByProdutor = async (req, res) => {
     const { cpf } = req.params
     vendaRepo.getVendasByProdutor(cpf)
@@ -36,6 +42,7 @@ const getCompraByProdutor = async (req, res) => {
 module.exports = {
     addVenda,
     deleteVenda,
+    getAll,
     getVendaByProdutor,
     getCompraByProdutor,
 }

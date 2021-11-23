@@ -34,16 +34,14 @@ const remove = async (idRegistro) => {
     })
 }
 
-const getById = async (id_registro) => {
+const getById = async (id) => {
     const sql = await dbConnection()
-    const query = `select * from tb_registro_vacina where id = ${id_registro}`
+    const query = `select * from tb_registro_vacina where id = ${id}`
+    console.log(query)
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset[0])
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset[0])
         })
     })
 }
@@ -60,6 +58,17 @@ const getByPropriedade = async (inscricao_estadual) => {
             }
         })
     }) 
+}
+
+const getAll = async () => {
+    const query = 'select * from tb_registro_vacina'
+    const sql = await dbConnection()
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else resolve(result.recordset)
+        })
+    })
 }
 
 // Pega o último ano em que um rebanho de uma especie foi vacinado em uma propriedade
@@ -80,6 +89,8 @@ const getUltimoRegistro = async (id_propriedade, id_especie) => {
 module.exports = {
     save,
     remove,
+    getAll,
+    getById,
     getByPropriedade,
-    getUltimoRegistro
+    getUltimoRegistro,
 }

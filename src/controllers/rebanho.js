@@ -29,9 +29,16 @@ const getAnimaisByPropriedade = async (req, res) => {
         .catch(err => res.status(500).send(err))
 }
 
+const getAll = async (req, res) => {
+    rebanhoRepo.getAll()
+        .then(response => res.json(response))
+        .catch(err => res.status(500).send(err))
+}
+
 module.exports = {
     addRebanho,
     deleteRebanho,
+    getAll,
     getAnimaisByProdutor,
     getAnimaisByPropriedade,
 }
