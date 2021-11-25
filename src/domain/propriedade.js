@@ -6,10 +6,13 @@ const create = (nome, inscricao_estadual, id_municipio, id_produtor) => {
         inscricao_estadual,
         id_municipio,
         id_produtor,
-        async valid () {
+        async valid (update = false) {
             if (!validateNome(this.nome)) return { valid: false, msg: 'Nome inválido' }
-            const found = await searchInscricao(this.inscricao_estadual) 
-            if (found) return { valid: false, msg: 'Inscrição estadual já cadastrada' }
+            if (!update) {
+                console.log('opaaa')
+                const found = await searchInscricao(this.inscricao_estadual)
+                if (found) return { valid: false, msg: 'Inscrição estadual já cadastrada' }
+            }
             return { valid: true, msg: 'Propriedade inserida com sucesso' }
         }
     }
@@ -21,14 +24,11 @@ const validateNome = (nome) => {
     else return true
 }
 
-const validateInscricao = (inscricao) => {
-//todo
-}
-
 const searchInscricao = async (inscricao) => {
     const result = await propriedadeRepo.getByInscricao(inscricao)
-    if (typeof(result) === 'string') return false
-    return true
+    console.log(result)
+    if (result) return true
+    return false
 }
 
 module.exports = {

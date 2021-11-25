@@ -11,6 +11,6 @@ router.route('/produtor')
     .post(addProdutor)
 
 router.route('/produtor/:id')
-    .patch(updateProdutor)
+    .put(updateProdutor)
     
 module.exports = router

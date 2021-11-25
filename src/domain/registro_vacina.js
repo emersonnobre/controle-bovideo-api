@@ -20,14 +20,20 @@ const create = (quantidade_animais, data_vacina, id_vacina, id_propriedade, id_e
         id_propriedade,
         async valid () {
             const data = await validateAno(id_propriedade, id_especie)
-            const ano = data.temRegistro ? Object.values(data.ano)[0] : false
+            
+            const ano = data.temRegistro ? data.ano : false
+            console.log('data obtida: ', ano)
             const anoAtual = new Date().getFullYear()
+            console.log('ano atual: ', anoAtual)
             if (ano == anoAtual) {
-                const saldoValido = await validateVacinados(id_propriedade, id_especie)
-                if (saldoValido) return { valid: true, msg: 'Pode vacinar, seu saldo total é maior que o vacinado' }
-                return { valid: false, msg: 'Todos os animais já foram vacinados esse ano' }
+                const saldoValido = await validateVacinados(id_propriedade, id_especie, Number(quantidade_animais))
+                console.log('saldo é: ', saldoValido)
+                if (saldoValido.valido) return { valid: true, msg: saldoValido.msg }
+                return { valid: false, msg: saldoValido.msg }
             } else {
-                return { valid: true, msg: 'Não possui registro de vacinação esse ano, tá liberado' }
+                const saldoValido = await validateVacinados(id_propriedade, id_especie, Number(quantidade_animais))
+                if (saldoValido.valido) return { valid: true, msg: 'Não possui registro de vacinação esse ano, tá liberado' }
+                return { valid: false, msg: saldoValido.msg }
             }
         }
     }
@@ -35,21 +41,25 @@ const create = (quantidade_animais, data_vacina, id_vacina, id_propriedade, id_e
 
 // Verifica o ano da ultima vacina dos animais em questão
 const validateAno = async (id_propriedade, id_especie) => {
-    const ano = await registroVacinaRepo.getUltimoRegistro(id_propriedade, id_especie)
-    if (typeof ano === 'string') return { temRegistro: false }
-    else return { temRegistro: true, ano: ano }
+    const registro = await registroVacinaRepo.getUltimoRegistro(id_propriedade, id_especie)
+    console.log(registro)
+    if (registro === 0) return { temRegistro: false }
+    else return { temRegistro: true, ano: registro.ano }
 }
 
 // Verifica se o saldo de animais total é maior que o saldo de animais vacinados
-const validateVacinados = async (id_propriedade, id_especie) => {
+const validateVacinados = async (id_propriedade, id_especie, quantidade) => {
     const saldoTotal = await rebanhoRepo.getSaldoTotal(id_propriedade, id_especie)
     const saldoVacinado = await rebanhoRepo.getSaldoVacinado(id_propriedade, id_especie)
     console.log(`
     Saldo total: ${saldoTotal.quantidade}\n
     Saldo vacinado: ${saldoVacinado.quantidade}
     `)
-    if (saldoTotal.quantidade > saldoVacinado.quantidade) return true
-    return false
+    console.log(saldoVacinado.quantidade + quantidade)
+    if(saldoTotal.quantidade == 0) return {valido: false, msg: 'Essa propriedade não possui animais dessa espécie'}
+    if (saldoTotal.quantidade >= (saldoVacinado.quantidade + quantidade)) return {valido: true, msg: 'Pode vacinar, seu saldo total é maior que o vacinado'}
+    if (saldoTotal.quantidade == saldoVacinado.quantidade) return {valido: false, msg: 'Todos os seus animais já estão vacinados'}
+    if (saldoTotal.quantidade < (saldoVacinado.quantidade + quantidade)) return {valido: false, msg: `Você pode vacinar no máximo ${saldoTotal.quantidade - saldoVacinado.quantidade} animal/animais dessa espécie`}
 }
 
 module.exports = {

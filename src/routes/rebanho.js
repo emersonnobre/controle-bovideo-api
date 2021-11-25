@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { addRebanho, deleteRebanho, getAnimaisByProdutor, getAnimaisByPropriedade, getAll } = require('../controllers/rebanho')
+const { addRebanho, deleteRebanho, getAnimaisByProdutor, getAnimaisByPropriedade, getAll, getAllVacinados, getAllEntradas } = require('../controllers/rebanho')
     
 router.route('/rebanho')
     .post(addRebanho)
@@ -14,7 +14,13 @@ router.route('/rebanho')
         }
     })
 
-router.route('/rebanho/:id')
+router.route('/rebanho/entrada/:id')
     .delete(deleteRebanho)
+
+router.route('/rebanho/vacinados')
+    .get(getAllVacinados)
+
+router.route('/rebanho/entradas')
+    .get(getAllEntradas)
 
 module.exports = router

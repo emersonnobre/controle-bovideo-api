@@ -13,5 +13,4 @@ router.route('/vacina')
 router.route('/vacina/:id_registro_vacina')
     .delete(deleteRegistroVacina)
 
-
 module.exports = router

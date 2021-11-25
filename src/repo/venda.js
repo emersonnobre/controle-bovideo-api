@@ -3,8 +3,30 @@ const produtorRepo = require('./produtor')
 const rebanhoRepo = require('../repo/rebanho')
 
 const getAll = async () => {
-    const query = 'select * from tb_venda'
+    const query = 
+    `
+    select v.id, v.data_venda, v.quantidade, v.id_especie, v.id_propriedade_origem, v.id_propriedade_destino, v.motivo,  e.descricao as especie,  p.nome as propriedade_origem
+    from tb_venda as v, tb_especie as e, tb_propriedade as p
+    where v.id_especie = e.id and
+    v.id_propriedade_origem = p.id
+    `
     const sql = await dbConnection()
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            resolve(result.recordset)
+        })
+    })
+}
+
+const getById = async (id_venda) => {
+    const sql = await dbConnection()
+    const query = `
+    select v.id, v.data_venda, v.quantidade, v.id_especie, v.id_propriedade_origem, v.id_propriedade_destino, v.motivo, e.descricao as especie, p.nome as propriedade_origem
+    from tb_venda as v, tb_especie as e, tb_propriedade as p
+    where v.id_especie = e.id and
+    v.id_propriedade_origem = p.id and
+    v.id = ${id_venda}
+    `
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
@@ -13,35 +35,17 @@ const getAll = async () => {
     })
 }
 
-const get = async (id_venda) => {
-    const sql = await dbConnection()
-    const query = `select * from tb_venda where id = ${id_venda}`
-    return new Promise((resolve, reject) => {
-        sql.request().query(query, (err, result) => {
-            if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset[0])
-                else resolve('Nenhum registro foi encontrado')
-            }
-        })
-    })
-}
-
 const getByPropriedadeFilterByDate = async (id_propriedade, id_especie, date) => {
     const sql = await dbConnection()
-    console.log()
     const query = `
     select * from tb_venda where id_propriedade_origem = ${id_propriedade} and
     id_especie = ${id_especie} and
-    data_venda >= ${date}
+    data_venda >= '${date}'
     `
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve(0)
-            }
+            else resolve(result.recordset)
         })
     })
 }
@@ -49,14 +53,13 @@ const getByPropriedadeFilterByDate = async (id_propriedade, id_especie, date) =>
 const save = async (quantidade, id_propriedade_destino, id_propriedade_origem, id_especie, finalidade) => {
     const sql = await dbConnection()
     const date = new Date()
-    const formatedDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-    const query = `insert into tb_venda values (${quantidade}, '${finalidade}', '${formatedDate}', ${id_especie}, ${id_propriedade_origem}, ${id_propriedade_destino})`
+    const formatedDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+    const query = `insert into tb_venda values ('${formatedDate}', ${quantidade}, ${id_especie}, ${id_propriedade_origem}, ${id_propriedade_destino}, '${finalidade}')`
     return new Promise((resolve, reject) => {
         sql.request().query(query, async (err, result) => {
             if (err) reject(err)
             try {
                 const produtor = await produtorRepo.getByPropriedade(id_propriedade_destino)
-                await addCompra(produtor.id)
                 await rebanhoRepo.save(id_propriedade_destino, quantidade, id_especie)
                 await rebanhoRepo.saveSaldoVacinado(quantidade, id_propriedade_destino, id_especie, 1)
                 await rebanhoRepo.removeSaldoTotal(quantidade, id_propriedade_origem, id_especie)
@@ -70,15 +73,22 @@ const save = async (quantidade, id_propriedade_destino, id_propriedade_origem, i
 }
 
 const remove = async (id_venda) => {
-    await removeCompra(id_venda)
     const sql = await dbConnection()
+    const venda = await getById(id_venda)
+    let quantidade = venda[0].quantidade
+    let destino = venda[0].id_propriedade_destino
+    let origem = venda[0].id_propriedade_origem
+    let especie = venda[0].id_especie
+    await rebanhoRepo.removeSaldoTotal(quantidade, destino, especie)
+    await rebanhoRepo.removeSaldoVacinado(quantidade, destino, especie)
+    await rebanhoRepo.save(origem, quantidade, especie)
+    await rebanhoRepo.saveSaldoVacinado(quantidade, origem, especie, 1)
     const query = `delete from tb_venda where id = ${id_venda}`
     return new Promise((resolve, reject) => {
         sql.request().query(query, async (err, result) => {
             if (err) reject(err)
             else {
                 if (result.rowsAffected[0] > 1) resolve('Venda removida com sucesso')
-                else resolve('Nenhum registro foi encontrado')
             }
         })
     })
@@ -114,18 +124,17 @@ const removeCompra = async (idVenda) => {
 const getVendasByProdutor = async (cpf) => {
     const sql = await dbConnection()
     const query = `
-    select v.quantidade, v.finalidade, v.id_especie, v.id_propriedade_origem, v.id_propriedade_destino from tb_venda as v, tb_produtor, tb_propriedade where 
-    v.id_propriedade_origem = tb_propriedade.id and
-	tb_propriedade.id_produtor = tb_produtor.id and
+    select v.data_venda, v.quantidade, v.motivo, v.id_especie, v.id_propriedade_origem, v.id_propriedade_destino, p.nome as propriedade_origem, e.descricao as especie 
+    from tb_venda as v, tb_produtor, tb_propriedade as p, tb_especie as e where 
+    v.id_especie = e.id and
+    v.id_propriedade_origem = p.id and
+	p.id_produtor = tb_produtor.id and
     tb_produtor.cpf = '${cpf}'
     ` /* TODO: fazer esse negocio com funcao sql */
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
         })
     })
 }
@@ -133,17 +142,17 @@ const getVendasByProdutor = async (cpf) => {
 const getComprasByProdutor = async (cpf) => {
     const sql = await dbConnection()
     const query = `
-    select * from tb_compra, tb_produtor where 
-    tb_compra.id_produtor = tb_produtor.id and
-    tb_produtor.cpf = '${cpf}' 
+    select v.data_venda, v.quantidade, v.motivo, v.id_especie, v.id_propriedade_origem, v.id_propriedade_destino, p.nome as propriedade_destino, e.descricao as especie 
+    from tb_venda as v, tb_produtor, tb_propriedade as p, tb_especie as e where 
+    v.id_especie = e.id and
+    v.id_propriedade_destino = p.id and
+	p.id_produtor = tb_produtor.id and
+    tb_produtor.cpf = '${cpf}'
     ` /* TODO: fazer esse negocio com funcao sql */
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
         })
     })
 }
@@ -155,4 +164,5 @@ module.exports = {
     getVendasByProdutor,
     getComprasByProdutor,
     getByPropriedadeFilterByDate,
+    getById,
 }

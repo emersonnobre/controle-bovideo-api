@@ -1,0 +1,101 @@
+create table tb_municipio (
+	id int not null primary key identity(1,1),
+	descricao varchar(50) not null
+)
+
+create table tb_especie(
+	id int not null primary key identity(1,1),
+	descricao varchar(50) not null
+)
+
+create table tb_vacina(
+	id int not null primary key identity(1,1),
+	descricao varchar(30) not null
+)
+
+create table tb_produtor(
+	id int not null primary key identity(1,1),
+	nome varchar(50) not null,
+	cpf varchar(11) unique not null
+)
+
+create table tb_endereco(
+	id int not null primary key identity(1,1),
+	rua varchar(50) not null,
+	numero varchar(5) not null,
+	principal bit not null,
+	id_produtor int not null references tb_produtor(id),
+	id_municipio int not null references tb_municipio(id),
+)
+
+create table tb_propriedade(
+	id int not null primary key identity(1,1),
+	nome varchar(50) not null,
+	inscricao_estadual varchar(50) not null,
+	id_produtor int not null references tb_produtor(id),
+	id_municipio int not null references tb_municipio(id),
+)
+
+create table tb_rebanho(
+	id int not null primary key identity(1,1),
+	quantidade int not null,
+	id_especie int not null references tb_especie(id),
+	id_propriedade int not null references tb_propriedade(id),
+)
+
+
+create table tb_rebanho_vacinado(
+	id int not null primary key identity(1,1),
+	quantidade int not null,
+	id_especie int not null references tb_especie(id),
+	id_propriedade int not null references tb_propriedade(id),
+	id_vacina int not null references tb_vacina(id)
+)
+
+create table tb_registro_vacina (
+	id int not null primary key identity(1,1),
+	quantidade int not null,
+	data_vacina date not null,
+	id_especie int not null references tb_especie(id),
+	id_propriedade int not null references tb_propriedade(id),
+	id_vacina int not null references tb_vacina(id)
+)
+
+create table tb_venda(
+	id int not null primary key identity(1,1),
+	data_venda date not null,
+	quantidade int not null,
+	id_especie int not null references tb_especie(id),
+	id_propriedade_origem int not null references tb_propriedade(id),
+	id_propriedade_destino int not null references tb_propriedade(id),
+	motivo varchar(20) not null
+)
+
+create table tb_entrada_animais (
+	id int not null primary key identity(1,1),
+	quantidade int not null,
+	data_insercao date not null,
+	id_especie int not null references tb_especie(id),
+	id_propriedade int not null references tb_propriedade(id)
+  )
+
+// inserts necessarios
+insert into tb_especie values ('bovino'), ('bubalino')
+insert into tb_vacina values ('aftosa'), ('brucelose - B19'), ('brucelose - RB51')
+
+// para deletar todas as tabelas do banco
+
+drop table tb_endereco
+drop table tb_entrada_animais
+drop table tb_rebanho
+drop table tb_rebanho_vacinado
+drop table tb_registro_vacina
+drop table tb_venda
+drop table tb_vacina
+drop table tb_propriedade
+drop table tb_produtor
+drop table tb_municipio
+drop table tb_especie
+
+
+

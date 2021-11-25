@@ -2,14 +2,11 @@ const dbConnection = require('../database/connection')
 
 const getAll = async () => {
     const sql = await dbConnection()
-    const query = 'select * from tb_produtor'
+    const query = 'select * from tb_produtor order by nome'
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
         })
     })
     
@@ -21,10 +18,7 @@ const getByCpf = async (cpf) => {
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if(result.recordset.length > 0) resolve(result.recordset[0])
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
         })
     })
 }
@@ -49,10 +43,18 @@ const getByPropriedade = async (id) => {
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if(result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
+        })
+    })
+}
+
+const getLastProdutor = async () => {
+    const sql = await dbConnection()
+    const query = `select top 1 * from tb_produtor order by id desc`
+    return new Promise((resolve, reject) => {
+        sql.request().query(query, (err, result) => {
+            if (err) reject(err)
+            else resolve(result.recordset[0])
         })
     })
 }
@@ -63,7 +65,9 @@ const save = async (nome, cpf) => {
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else resolve('Produtor inserido com sucesso')
+            else {
+                getLastProdutor().then(resolve).catch(reject)
+            }
         })
     })
 }
@@ -87,6 +91,7 @@ module.exports = {
     getByCpf,
     getById,
     getByPropriedade,
+    getLastProdutor,
     save,
     update,
 }

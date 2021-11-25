@@ -23,12 +23,13 @@ const getProdutorById = async (req, res) => {
 
 const addProdutor = async (req, res) => {
     const { nome, cpf } = req.body
+    console.log(req.body)
     if (!nome || !cpf) return res.status(400).send('Informe os campos necessários')
     const produtor = produtorDomain.create(nome, cpf)
     const valid = await produtor.valid()
     if (valid.valid === false) return res.status(400).send(valid.msg)
     produtorRepo.save(nome, cpf)
-        .then(response => res.send(response))
+        .then(response => {res.status(201).json(response); console.log(response)})
         .catch(err => res.status(500).send(err))
 }
 
@@ -38,9 +39,9 @@ const updateProdutor = async (req, res) => {
     if (!nome || !cpf) return res.status(400).send('Informe os campos necessários')
     const produtor = produtorDomain.create(nome, cpf)
     const valid = produtor.valid()
-    if (valid.valid === false) return res.status(400).send(valid.msg)
+    if (valid.valid === false) return res.status(400).json(valid.msg)
     produtorRepo.update(nome, cpf, id)
-        .then(response => res.send(response))
+        .then(response => res.json(response))
         .catch(err => res.status(500).send(err))
 }
 
