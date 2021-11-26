@@ -17,7 +17,7 @@ const addVenda = async (req, res) => {
 const deleteVenda = async (req, res) => {
     const { id } = req.params
     vendaRepo.remove(id)
-        .then(response => res.status(200).send(response))
+        .then(response => res.status(200).json(response))
         .catch(err => console.log(err))
 }
 

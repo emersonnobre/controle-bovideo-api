@@ -88,7 +88,7 @@ const remove = async (id_venda) => {
         sql.request().query(query, async (err, result) => {
             if (err) reject(err)
             else {
-                if (result.rowsAffected[0] > 1) resolve('Venda removida com sucesso')
+                if (result.rowsAffected[0] > 0) resolve('Venda removida com sucesso')
             }
         })
     })

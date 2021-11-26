@@ -17,7 +17,7 @@ const getPropriedadeInscricao = async (req, res) => {
 const getPropriedadeProdutor = async (req, res) => {
     const { id_produtor } = req.query
     propriedadeRepo.getByProdutor(id_produtor)
-        .then(response => res.json(response))
+        .then(response => {res.json(response); console.log(response)})
         .catch(err => res.status(500).send(err))
 }
 

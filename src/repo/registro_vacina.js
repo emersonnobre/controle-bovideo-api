@@ -61,10 +61,7 @@ const getByPropriedade = async (inscricao_estadual) => {
     return new Promise((resolve, reject) => {
         sql.request().query(query, (err, result) => {
             if (err) reject(err)
-            else {
-                if (result.recordset.length > 0) resolve(result.recordset)
-                else resolve('Nenhum registro foi encontrado')
-            }
+            else resolve(result.recordset)
         })
     }) 
 }
